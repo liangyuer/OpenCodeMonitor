@@ -14,7 +14,7 @@ import Foundation
 import Darwin
 import SQLite3
 
-let APP_VERSION = "1.3.0"
+let APP_VERSION = "1.3.1"
 let USAGE_URL = URL(string: "https://opencode.ai/zen/go/v1/usage")!
 let DASHBOARD_URL = URL(string: "https://opencode.ai/zen")!
 let PLAN_DEFAULT = "OpenCode Go"
@@ -713,6 +713,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, MenuActions {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)  // 纯菜单栏应用，不占 Dock
+        setupMainMenu()  // 隐藏的编辑菜单：让 ⌘C/⌘V/⌘A 在输入框里生效
         if config.api_key.isEmpty, let k = importKeyFromOpencodeAuth() {
             config.api_key = k
             saveConfig(config)
@@ -723,6 +724,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate, MenuActions {
         if config.api_key.isEmpty {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in self?.openSetup() }
         }
+    }
+
+    /// 无菜单栏应用（LSUIElement）没有主菜单时，标准编辑快捷键（⌘V 等）不会分发到输入框。
+    /// 这里挂一个隐藏的编辑菜单，恢复剪贴板快捷键。
+    private func setupMainMenu() {
+        let main = NSMenu()
+        let appItem = NSMenuItem()
+        main.addItem(appItem)
+        let appMenu = NSMenu(title: "OpenCodeMonitor")
+        appMenu.addItem(withTitle: "退出 OpenCodeMonitor",
+                        action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appItem.submenu = appMenu
+
+        let editItem = NSMenuItem()
+        main.addItem(editItem)
+        let editMenu = NSMenu(title: "编辑")
+        editMenu.autoenablesItems = true
+        editMenu.addItem(withTitle: "撤销", action: Selector(("undo:")), keyEquivalent: "z")
+        editMenu.addItem(withTitle: "重做", action: Selector(("redo:")), keyEquivalent: "Z")
+        editMenu.addItem(.separator())
+        editMenu.addItem(withTitle: "剪切", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        editMenu.addItem(withTitle: "拷贝", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        editMenu.addItem(withTitle: "粘贴", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        editMenu.addItem(withTitle: "全选", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        editItem.submenu = editMenu
+        NSApp.mainMenu = main
     }
 
     // MARK: 状态栏外观
@@ -967,10 +994,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, MenuActions {
         hint.usesSingleLineMode = false
         cv.addSubview(hint)
 
-        let field = NSSecureTextField(frame: NSRect(x: 20, y: H - 100, width: W - 40, height: 26))
+        let field = NSSecureTextField(frame: NSRect(x: 20, y: H - 100, width: W - 118, height: 26))
         field.placeholderString = "sk-opencode-…"
         field.stringValue = config.api_key
         cv.addSubview(field)
+
+        let paste = NSButton(title: "粘贴", target: self, action: #selector(pasteKeyFromClipboard))
+        paste.frame = NSRect(x: W - 88, y: H - 100, width: 68, height: 26)
+        paste.bezelStyle = .rounded
+        cv.addSubview(paste)
 
         let status = NSTextField(labelWithString: errorMsg.map { "上次请求失败：\($0)" } ?? "")
         status.frame = NSRect(x: 20, y: H - 126, width: W - 40, height: 18)
@@ -998,6 +1030,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, MenuActions {
     }
 
     @objc func closeSetup() { setupPanel?.orderOut(nil) }
+
+    /// 「粘贴」按钮：把剪贴板文本填入 key 输入框（兜底方案，不依赖快捷键分发）
+    @objc func pasteKeyFromClipboard() {
+        guard let s = NSPasteboard.general.string(forType: .string)?
+            .trimmingCharacters(in: .whitespacesAndNewlines), !s.isEmpty else { return }
+        setupKeyField?.stringValue = s
+        setupStatusLabel?.stringValue = ""
+    }
 
     @objc func saveKey() {
         config.api_key = setupKeyField?.stringValue.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
