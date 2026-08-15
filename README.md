@@ -130,4 +130,8 @@ dist/OpenCodeMonitor.app/Contents/MacOS/OpenCodeMonitor --snapshot out.png  # �
 
 ## 许可证
 
-基于 [MIT License](LICENSE)，移植自 [Hanfei1224/OpenCodeMonitor](https://github.com/Hanfei1224/OpenCodeMonitor)。
+基于 [MIT License](LICENSE)。
+
+## 感谢
+
+参考代码：[Hanfei1224/OpenCodeMonitor](https://github.com/Hanfei1224/OpenCodeMonitor)。
