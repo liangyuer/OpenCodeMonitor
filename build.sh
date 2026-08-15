@@ -10,6 +10,7 @@ echo "▶ 编译 main.swift ..."
 swiftc -O -framework AppKit -o dist/OpenCodeMonitor.app/Contents/MacOS/OpenCodeMonitor main.swift
 
 cp Info.plist dist/OpenCodeMonitor.app/Contents/Info.plist
+cp AppIcon.icns dist/OpenCodeMonitor.app/Contents/Resources/AppIcon.icns
 
 # Apple Silicon 必须签名（ad-hoc 即可本机运行）
 echo "▶ 签名 ..."

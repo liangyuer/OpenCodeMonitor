@@ -109,6 +109,19 @@ open dist/OpenCodeMonitor.app
 ./build.sh    # swiftc -O 编译 + 打包 .app + ad-hoc 签名
 ```
 
+## 发行打包
+
+```bash
+./release.sh  # 编译 + 签名校验 + 生成 DMG 与 ZIP（产物在 release/）
+```
+
+产物：`release/OpenCodeMonitor-<版本>.dmg`（内含应用与 Applications 快捷方式）与同名 `.zip`，
+可直接作为 GitHub Release 附件分发。
+
+- 应用图标：`AppIcon.icns`（环形仪表盘风格，由 `swift tools/make_icon.swift` 生成，可再生成）
+- 当前为 ad-hoc 签名、未经 Apple 公证：本人本机双击即用；分发给他人时首次需
+  「右键 → 打开」。如需无警告分发，需 Apple Developer 账号做 notarization（`notarytool`）。
+
 调试/验证模式（无需 GUI）：
 
 ```bash

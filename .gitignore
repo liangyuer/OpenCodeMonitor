@@ -5,6 +5,8 @@ config.json
 # ===== 构建产物 =====
 dist/
 build/
+release/
+dmg_stage/
 *.o
 
 # ===== 临时/日志 =====
