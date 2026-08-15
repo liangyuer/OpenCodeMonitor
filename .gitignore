@@ -1,0 +1,15 @@
+# ===== 敏感文件：严禁提交 =====
+# 用户配置（含 OpenCode API Key，实际位于 ~/Library/Application Support/OpenCodeMonitor/）
+config.json
+
+# ===== 构建产物 =====
+dist/
+build/
+*.o
+
+# ===== 临时/日志 =====
+*.log
+*.tmp
+
+# ===== 系统 =====
+.DS_Store
